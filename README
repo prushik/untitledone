@@ -1,0 +1,81 @@
+Untitled One
+
+
+History:
+
+Untitled One was originally written in my late highschool / early college days.
+The idea was to create a space combat game with Asteroids-like physics, but 
+introducing two player versus combat, and adding in gravity inspired by games
+such as Lunar Lander. Although Untitled One is meant to be similar to these
+games, I was mainly inspired by another game called Crazy Gravity, which
+included physics almost identical to Untitled One's physics, but was more
+detail oriented and less action oriented, which made it a fun game for
+doing speedruns. I recommend it if you have the time and don't mind paying
+a little money for a fun game, although, it only runs on Windows.
+In the end, I think what I have devised is a very unique idea for a game, and
+I think that it is probably one of my favorite game ideas because it is so
+unique, but also so simple, yet the gameplay is so difficult to master. To
+this day, I have yet to find another who can fire more then once or twice
+without crashing or flying off the screen, however, it is no problem for me,
+I have successfully destroyed all 10 targets in target mode in under 19
+seconds, and reached wave 4 in asteroids mode, but have never found another
+to play a real, competitive 2 player game.
+
+Although this project is called "Untitled One", this is far from my first
+project. Untitled One was simply the first in a series of unrelated games
+which I used as my sandbox for testing new ideas. This is also not even the
+first Untitled One game. The first was written in a program called Game Maker
+and I don't even think this version reached a playable state, the second was
+written in C++ using Windows GDI+ for graphics and only included two player
+combat mode, no menus were implemented in this version, this is the reason two
+player combat mode is now called "Classic", the third iteration was written
+in C++ for Windows using OpenGL for graphics, this version was the first to
+include asteroids and targets and a menu. It also included a network mode,
+although it was essentially non-functional. Finally, the version you see now is
+a port of that Windows version, with the Windows code replaced with portable
+code (thanks to FreeGLUT), and numerous enhancements.
+
+
+Compilation:
+
+The source is entirely contained in one file, called main.c. This file includes
+everything needed in the compiled executable, including sound effects. I have
+tried my best to keep the source under 3000 lines of code, so it should be
+easy to modify if you need to or want to. Once compiled, everything is
+contained inside a single executable file (including models and audio).
+Compiling is quite easy, and can be done in a number of ways.
+
+Method 1:
+./configure
+make
+
+running ./configure works just like a GNU autotools project (although it is
+not), you can run ./configure --help to see other options you may be interested
+in, such as disabling audio or enabling experimental or legacy features, or
+disabling POSIX functions which might prevent compilation on non-POSIX systems.
+./configure will create a vars.mk file which is read by Makefile can tells make
+which arguments to compile with.
+make will compile the executable for you, which can then be installed by
+running (as root):
+
+make install
+
+Which will install the executable to either /usr/local/bin/ or a user specified
+prefix.
+
+Method 2:
+gcc main.c -lglut -lGL -lGLU -lm
+
+Since the project is so simple, you can easily build without make. However,
+note that you will need other options to compile optional features, such as
+sound. For example, to include sound you would need to add:
+-DAUDIO -lalut -lopenal
+making your compilation string look like this:
+
+gcc main.c -lglut -lGL -lGLU -lm -DAUDIO -lalut -lopenal
+
+other options are available, such as -DNONETWORK and -DFULLSCREEN, read the
+source to learn about these options, they basically do what exactly what you
+think they will do.
+Compiling this way should be very easy for anyone who is familliar with GCC or
+any other Unix-like command line compiler.
