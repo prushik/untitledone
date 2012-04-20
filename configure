@@ -1,0 +1,67 @@
+#!/bin/sh
+
+LDFLAGS="-lglut -lGLU -lGL -lm"
+EXE="UntitledOne"
+PREFIX="/usr/local"
+AUDIO="-DAUDIO -lopenal -lalut"
+NETWORK=""
+FULLSCREEN=""
+TIMING=""
+
+for all in $@
+do
+	opt=`echo $all | cut -d = -f 1`
+	arg=`echo $all | cut -d = -f 2`
+	if [ $opt = "--prefix" ]; then
+		PREFIX=$arg
+	fi
+	if [ $opt = "--disable-audio" ]; then
+		AUDIO=""
+	fi
+	if [ $opt = "--disable-network" ]; then
+		NETWORK="-DNONETWORK"
+	fi
+	if [ $opt = "--enable-fullscreen" ]; then
+		FULLSCREEN="-DFULLSCREEN"
+	fi
+	if [ $opt = "CC" ]; then
+		CC=$arg
+	fi
+	if [ $opt = "CFLAGS" ]; then
+		CFLAGS=$arg
+	fi
+	if [ $opt = "LDFLAGS" ]; then
+		CFLAGS=$arg
+	fi
+	if [ $opt = "EXE" ]; then
+		EXE=$arg
+	fi
+	if [ $opt = "--enable-sloppy-timings" ] then
+		TIMING="-DSLOPPYTIME"
+	fi
+	if [ $opt = "--help" ]; then
+		echo "Usage: configure [options]"
+		echo "Options: [defaults in brackets after descriptions]"
+		echo "Configuration:"
+		echo "Directory and file names:"
+		echo "--prefix=PREFIX         install architecture-independent files in PREFIX"
+		echo "                          [/usr/local]"
+		echo "Features and packages:"
+		echo "--enable options recognized:"
+		echo "--enable-fullscreen	Compile for fullscreen mode (not finished)"
+		echo "--disable-network		Compile without network mode (for non-posix compliant machines)"
+		echo "--disable-audio		Compile without openAL sounds"
+
+		exit
+	fi
+done
+
+if [ "$CC" = "" ]; then
+	CC=gcc
+fi
+
+echo CC=$CC			>  vars.mk
+echo CFLAGS=$CFLAGS		>> vars.mk
+echo LDFLAGS=$LDFLAGS $AUDIO $FULLSCREEN $NETWORK $TIMING	>> vars.mk
+echo EXE=$EXE			>> vars.mk
+echo PREFIX=$PREFIX		>> vars.mk
