@@ -36,7 +36,7 @@ do
 	if [ $opt = "EXE" ]; then
 		EXE=$arg
 	fi
-	if [ $opt = "--enable-sloppy-timings" ] then
+	if [ $opt = "--enable-sloppy-timings" ]; then
 		TIMING="-DSLOPPYTIME"
 	fi
 	if [ $opt = "--help" ]; then
