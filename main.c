@@ -1,13 +1,13 @@
 //Title:		Untitled One
 //Files:		main.c
-//			UntitledOne (executable)
-//Description:		Untitled One in OpenGL for Linux. Player controls a craft with 
-//			lunar lander type controls and attempts to shoot and destroy
-//			various targets without crashing.
+//				UntitledOne (executable)
+//Description:	Untitled One in OpenGL for Linux. Player controls a craft with 
+//				lunar lander type controls and attempts to shoot and destroy
+//				various targets without crashing.
 //Author:		PHilip RUshik
-//Contributors:		
+//Contributors:	
 //License:		Beerware Rev. 43H
-//License Text:
+//License Text:	
 /*
  * ----------------------------------------------------------------------------
  * "THE BEER-WARE LICENSE" (Revision 43H):
@@ -208,10 +208,10 @@ static volatile int key[512];
 
 //Variables needed for OpenAL
 #ifdef AUDIO
-	static ALuint buffers[25];
-	static ALfloat sourcePos[3],sourceVel[3],sourceOri[3],
+	static	ALuint buffers[25];
+	static	ALfloat sourcePos[3],sourceVel[3],sourceOri[3],
 			listenerPos[3],listenerVel[3],listenerOri[3];
-	static ALuint source[30];
+	static	ALuint source[30];
 #endif
 
 //Wrapper function to make my old Windows crap work with GLUT
@@ -1420,35 +1420,35 @@ int BulletXTarget(struct bulletType1 b, struct targets a)
 
 int BulletXAsteroid(struct bulletType1 b, struct asteroids a)
 {
-     if (b.active>0)
-        return false;
-     
-     float  x1,x2,
-            y1,y2;
-            
-     x1=a.x+(10*a.size);
-     x2=a.x-(10*a.size);
-     y1=a.y+(10*a.size);
-     y2=a.y-(10*a.size);
-     
-     if (XLines(x1,y1,x1,y2, b.x-b.xspeed, b.y-b.yspeed, b.x+b.xspeed, b.y+b.yspeed))
-        return true;
-        
-     if (XLines(x1,y2,x2,y2, b.x-b.xspeed, b.y-b.yspeed, b.x+b.xspeed, b.y+b.yspeed))
-        return true;
-        
-     if (XLines(x2,y2,x2,y1, b.x-b.xspeed, b.y-b.yspeed, b.x+b.xspeed, b.y+b.yspeed))
-        return true;
-     
-     if (XLines(x2,y1,x1,y1, b.x-b.xspeed, b.y-b.yspeed, b.x+b.xspeed, b.y+b.yspeed))
-        return true;
-        
-     return false;
+	if (b.active>0)
+		return false;
+
+	float  x1,x2,
+			y1,y2;
+
+	x1=a.x+(10*a.size);
+	x2=a.x-(10*a.size);
+	y1=a.y+(10*a.size);
+	y2=a.y-(10*a.size);
+
+	if (XLines(x1,y1,x1,y2, b.x-b.xspeed, b.y-b.yspeed, b.x+b.xspeed, b.y+b.yspeed))
+		return true;
+
+	if (XLines(x1,y2,x2,y2, b.x-b.xspeed, b.y-b.yspeed, b.x+b.xspeed, b.y+b.yspeed))
+		return true;
+
+	if (XLines(x2,y2,x2,y1, b.x-b.xspeed, b.y-b.yspeed, b.x+b.xspeed, b.y+b.yspeed))
+		return true;
+
+	if (XLines(x2,y1,x1,y1, b.x-b.xspeed, b.y-b.yspeed, b.x+b.xspeed, b.y+b.yspeed))
+		return true;
+
+	return false;
 }
 
 
 void Keys()
-{          
+{
 	if (key[VK_UP])
 	{
 		user.xspeed+=cos(user.dir*(PI/180))*thrust;
@@ -1504,9 +1504,9 @@ void Keys()
 	{
 		if (user2.reload<=0)
 		{
-			 Fire(user2);
+			Fire(user2);
 			status.p2shots+=1;
-			 user2.reload=30;
+			user2.reload=30;
 		}
 	}
 	if (key[VK_ESC])
@@ -1645,61 +1645,61 @@ void MenuMain()
 	glTranslated(1,0,1);
 	glScaled(0.00075,0.00075,0.1);
 	ShowText("Untitled One");
-     
+
 	glColor3f(menu.b, menu.r, menu.g);
-     
-     if (menu.rot<90 || menu.rot>270)
-     {
-	glLoadIdentity();
-        glTranslated((-width)/w2,(-(height/2)/h2)+0.75,-3);
-        glRotated(menu.rot,1,0,0);
-        glTranslated(1.8,0,0.5);
-        glScaled(0.00075,0.00075,0.1);
-	ShowText("Classic");
-     }
-     
-     if (menu.rot<210 && menu.rot>30)
-     {
-	glLoadIdentity();
-        glTranslated((-width)/w2,(-(height/2)/h2)+0.75,-3);
-        glRotated(menu.rot+240,1,0,0);
-        glTranslated(1.8,0,0.5);
-        glScaled(0.00075,0.00075,0.1);
-	ShowText("Targets");
-     }
-        
-     if (menu.rot<150 || menu.rot>330)
-     {
-	glLoadIdentity();
-        glTranslated((-width)/w2,(-(height/2)/h2)+0.75,-3);
-        glRotated(menu.rot+300,1,0,0);
-        glTranslated(1.8,0,0.5);
-        glScaled(0.00075,0.00075,0.1);
-	ShowText("Asteroids");
-     }
-     
-     if (menu.rot<30 || menu.rot>210)
-     {
-	glLoadIdentity();
-        glTranslated((-width)/w2,(-(height/2)/h2)+0.75,-3);
-        glRotated(menu.rot+60,1,0,0);
-        glTranslated(1.8,0,0.5);
-        glScaled(0.00075,0.00075,0.1);
-	ShowText("Exit");
-     }
-     
-     if (menu.rot<330 && menu.rot>150)
-     {
-        glLoadIdentity();
-        glTranslated((-width)/w2,(-(height/2)/h2)+0.75,-3);
-        glRotated(menu.rot+120,1,0,0);
-        glTranslated(1.8,0,0.5);
-        glScaled(0.00075,0.00075,0.1);
-	ShowText("Help");
-     }
-     
-     if (menu.rot<270 && menu.rot>90)
-     {
+
+	if (menu.rot<90 || menu.rot>270)
+	{
+		glLoadIdentity();
+		glTranslated((-width)/w2,(-(height/2)/h2)+0.75,-3);
+		glRotated(menu.rot,1,0,0);
+		glTranslated(1.8,0,0.5);
+		glScaled(0.00075,0.00075,0.1);
+		ShowText("Classic");
+	}
+
+	if (menu.rot<210 && menu.rot>30)
+	{
+		glLoadIdentity();
+		glTranslated((-width)/w2,(-(height/2)/h2)+0.75,-3);
+		glRotated(menu.rot+240,1,0,0);
+		glTranslated(1.8,0,0.5);
+		glScaled(0.00075,0.00075,0.1);
+		ShowText("Targets");
+	}
+
+	if (menu.rot<150 || menu.rot>330)
+	{
+		glLoadIdentity();
+		glTranslated((-width)/w2,(-(height/2)/h2)+0.75,-3);
+		glRotated(menu.rot+300,1,0,0);
+		glTranslated(1.8,0,0.5);
+		glScaled(0.00075,0.00075,0.1);
+		ShowText("Asteroids");
+	}
+
+	if (menu.rot<30 || menu.rot>210)
+	{
+		glLoadIdentity();
+		glTranslated((-width)/w2,(-(height/2)/h2)+0.75,-3);
+		glRotated(menu.rot+60,1,0,0);
+		glTranslated(1.8,0,0.5);
+		glScaled(0.00075,0.00075,0.1);
+		ShowText("Exit");
+	}
+
+	if (menu.rot<330 && menu.rot>150)
+	{
+		glLoadIdentity();
+		glTranslated((-width)/w2,(-(height/2)/h2)+0.75,-3);
+		glRotated(menu.rot+120,1,0,0);
+		glTranslated(1.8,0,0.5);
+		glScaled(0.00075,0.00075,0.1);
+		ShowText("Help");
+	}
+
+	if (menu.rot<270 && menu.rot>90)
+	{
 		glLoadIdentity();
 		glTranslated((-width)/w2,(-(height/2)/h2)+0.75,-3);
 		glRotated(menu.rot+180,1,0,0);
@@ -1712,19 +1712,19 @@ void MenuMain()
 			ShowText("Disabled");
 			glColor3f(menu.b, menu.r, menu.g);
 		#endif
-     }
-     
-     glLoadIdentity();
-        glTranslated((-width)/w2,(-(height/2)/h2)+0.75+(10/w2),-3);
-        glRotated(((menu.rot+320)%60)+160,1,0,0);
-        glTranslated(1.8+(-10/w2),0,0.5);
-     glBegin(GL_TRIANGLES);
-     glColor3f (1, 0.5, 0);   glVertex3f (15/w2, 0/h2, -1);
-     glColor3f (1, 0.5, 0);   glVertex3f (-10/w2, -10/h2, -1);
-     glColor3f (1, 0.5, 0);   glVertex3f (-10/w2, 10/h2, -1);
-     glEnd();
-     
-     	glLoadIdentity();
+	}
+
+	glLoadIdentity();
+	glTranslated((-width)/w2,(-(height/2)/h2)+0.75+(10/w2),-3);
+	glRotated(((menu.rot+320)%60)+160,1,0,0);
+	glTranslated(1.8+(-10/w2),0,0.5);
+	glBegin(GL_TRIANGLES);
+		glColor3f (1, 0.5, 0);   glVertex3f (15/w2, 0/h2, -1);
+		glColor3f (1, 0.5, 0);   glVertex3f (-10/w2, -10/h2, -1);
+		glColor3f (1, 0.5, 0);   glVertex3f (-10/w2, 10/h2, -1);
+	glEnd();
+
+	glLoadIdentity();
 	glTranslated(0.22,-1.3,-3);
 	glScaled(0.0005,0.0005,1);
 	ShowText("Use arrow keys to scroll");
@@ -1732,18 +1732,18 @@ void MenuMain()
 	glTranslated(0.22,-1.4,-3);
 	glScaled(0.0005,0.0005,1);
 	ShowText("Press 'Enter' to select");
-     
-     if (KeyState(VK_UP))
-        menu.rot+=-5;
-        
-     if (KeyState(VK_DOWN))
-        menu.rot+=5;
-        
-     if (menu.rot>360)
-        menu.rot+=-360;
-     if (menu.rot<0)
-        menu.rot+=360;
 
+	if (KeyState(VK_UP))
+		menu.rot+=-5;
+
+	if (KeyState(VK_DOWN))
+		menu.rot+=5;
+
+	if (menu.rot>360)
+		menu.rot+=-360;
+
+	if (menu.rot<0)
+		menu.rot+=360;
 
 	if (KeyState(VK_RETURN))
 	{
@@ -1790,7 +1790,7 @@ void DrawStats()
 		ShowText(text);
 		ShowText(" Seconds");
 	}
-	
+
 	glLoadIdentity();
 	glTranslated(-1.5,1.1,-3);
 	glScaled(0.0005,0.0005,1);
@@ -1800,7 +1800,7 @@ void DrawStats()
 		sprintf(text,"%d",status.p1shots);
 		ShowText(text);
 	}
-	
+
 	glLoadIdentity();
 	glTranslated(-1.5,1,-3);
 	glScaled(0.0005,0.0005,1);
@@ -1939,12 +1939,11 @@ void DrawStats()
 
 void DrawAll()
 {
-
 	DrawShip(user);
 	DrawShip(user2);
-     
+
 	DrawAsteroids();
-     
+
 	DrawShip(remote);
 
 	DrawBullets();
@@ -1954,7 +1953,7 @@ void DrawAll()
 	DrawTargets();
 
 	glutSwapBuffers();
-	
+
 	return;
 }
 
@@ -2261,7 +2260,7 @@ void DrawGround()
 }
 
 void DrawEffects()
-{     
+{
 	int i;
 	for (i=0; i<500; i++)
 	{
@@ -2336,7 +2335,7 @@ void Hit(struct bulletType1 bt1)
 	#endif
 
 	return;
-} 
+}
 
 
 int XLines(double x11, double y11, double x12, double y12, double x21, double y21, double x22, double y22)
@@ -2375,9 +2374,7 @@ int XLines(double x11, double y11, double x12, double y12, double x21, double y2
            return false;
      }
      else
-     {
         return false;
-     }
 }
 
 
@@ -2389,12 +2386,12 @@ void HelpSetup()
 	int i;
 	for (i=0; i<50; i++)
 		asteroid[i].visible=false;
-	
+
 	status.asteroids=0;
 	status.targets=0;
-	
+
 	CurrentLoop=HelpMain;
-	
+
 	return;
 }
 
@@ -2403,20 +2400,12 @@ void HelpMain()
 {
      glLoadIdentity();
      glColor3f(1, 0.5f, 0);
-//     glTranslated((-w2)/w2,-(h2)/h2,-6);
-//     glTranslated((-w2)/w2,0,-6);
-//     glTranslated(0.5,3,0);
      glTranslated(-0.5,-0.4,-6);
      glScaled(0.00075,0.00075,1);
 
-//        glTranslated((-width)/w2,(-(height/2)/h2)+2.0,-9.5);
-//        glTranslated(1,0,1);
-//        glScaled(0.00075,0.00075,1);
-//	ShowText("Welcome to Untitled One help.");
-
 	//Prevent Endgame Screen
 	status.end=0;
-	
+
      glLoadIdentity();
      glColor3f(0.85f, 0.5f, 0);
      glTranslated(-1.5,1.5,-3);
@@ -2690,4 +2679,3 @@ void HelpMain()
      
      return;
 }
-
