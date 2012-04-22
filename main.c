@@ -217,9 +217,26 @@ static volatile int key[512];
 //Wrapper function to make my old Windows crap work with GLUT
 void run()
 {
+	#ifdef INSTRUMENT
+		int timea,timeb,timedelta;
+		timea=glutGet(GLUT_ELAPSED_TIME);
+		printf("%d : ",timea);
+	#endif
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+	#ifdef INSTRUMENT
+		timeb=glutGet(GLUT_ELAPSED_TIME);
+		printf("%d : ",timeb-timea);
+	#endif
+
 	Keys();
+
+	#ifdef INSTRUMENT
+		timea=glutGet(GLUT_ELAPSED_TIME);
+		printf("%d : ",timea-timeb);
+	#endif
 
 	#ifndef SLOPPYTIME
 		struct timeval a;
@@ -250,7 +267,18 @@ void run()
 //		if (status.prshots==-1)
 	#endif
 
+	#ifdef INSTRUMENT
+		timeb=glutGet(GLUT_ELAPSED_TIME);
+		printf("%d : ",timeb-timea);
+	#endif
+
 	CurrentLoop();
+
+
+	#ifdef INSTRUMENT
+		timea=glutGet(GLUT_ELAPSED_TIME);
+		printf("%d : ",timea-timeb);
+	#endif
 
 	#ifndef SLOPPYTIME
 		gettimeofday(&b, 0);
@@ -267,6 +295,11 @@ void run()
 		#else
 			Sleep(1000/fps);
 		#endif
+	#endif
+
+	#ifdef INSTRUMENT
+		timeb=glutGet(GLUT_ELAPSED_TIME);
+		printf("%d\n",timeb-timea);
 	#endif
 
 	return;
@@ -1939,18 +1972,33 @@ void DrawStats()
 
 void DrawAll()
 {
+	#ifdef INSTRUMENT
+		int timea,timeb,timedelta;
+		timea=glutGet(GLUT_ELAPSED_TIME);
+	#endif
+
 	DrawShip(user);
 	DrawShip(user2);
 
 	DrawAsteroids();
 
 	DrawShip(remote);
-
+	
+	#ifdef INSTRUMENT
+		timeb=glutGet(GLUT_ELAPSED_TIME);
+		printf("*%d* : ",timeb-timea);
+	#endif
+	
 	DrawBullets();
 	DrawGround();
 	DrawEffects();
 
 	DrawTargets();
+
+	#ifdef INSTRUMENT
+		timea=glutGet(GLUT_ELAPSED_TIME);
+		printf("*%d* : ",timea-timeb);
+	#endif
 
 	glutSwapBuffers();
 
