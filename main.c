@@ -75,14 +75,15 @@ struct menu
 
 struct craft
 {
-       float  x,y,
-              xspeed, yspeed;
-       float  r1,r2,r3,
-              g1,g2,g3,
-              b1,b2,b3;
-       float  health;
-       short  dir, reload, range, prime;
-       int   land, visible;
+		float  x,y,
+			  xspeed, yspeed;
+		float  r1,r2,r3,
+			  g1,g2,g3,
+			  b1,b2,b3;
+		float  health;
+		short  dir, reload, range, prime;
+		int   land, visible;
+		GLuint list;
 };
 
 struct bulletType1
@@ -147,6 +148,8 @@ int Bullet1XShip(struct bulletType1 b, struct craft craft);
 int AsteroidXShip(struct asteroids a, struct craft craft);
 int BulletXAsteroid(struct bulletType1 b, struct asteroids a);
 int BulletXTarget(struct bulletType1 b, struct targets a);
+GLuint BuildShip(struct craft craft);
+void BuildTarget();
 void DrawAll();
 void DrawShip(struct craft craft);
 void DrawBullets();
@@ -194,6 +197,7 @@ static short aC = 0;
 static short aN = 0;
 static double gravity = -0.095;	//Gravity strength
 static double thrust = 0.25;	//Ship thrust strength
+static GLuint target_list;
 
 static volatile int key[512];
 
@@ -504,6 +508,9 @@ void GameInit()
 	user2.range=240;
 	user2.prime=30;
 
+	user.list = BuildShip(user);
+	user2.list = BuildShip(user2);
+
 	remote.visible=false;
 
 	int i;
@@ -513,7 +520,7 @@ void GameInit()
 	for (i=0; i<50; i++)
 		asteroid[i].visible=false;
 
- 	CurrentLoop=GameMain;
+	CurrentLoop=GameMain;
 
 	return;
 }
@@ -554,14 +561,19 @@ void TargetSetup()
 	user.dir=90;
 	user.health=100;
 	user.visible=true;
-	user.r1=0.3; user.g1=1; user.b1=0.3;
-	user.r2=0; user.g2=0.4; user.b2=0;
-	user.r3=0; user.g3=0.8; user.b3=0;
+	user.r1=0.5; user.g1=1; user.b1=0.3;
+	user.r2=0.1; user.g2=0.4; user.b2=0;
+	user.r3=0.3; user.g3=0.8; user.b3=0;
 	user.range=240;
 	user.prime=30;
 
 	user2.visible=false;
 	remote.visible=false;
+
+	user.list = BuildShip(user);
+
+	if (!glIsList(target_list))
+		BuildTarget();
 
 	target[0].x=200;
 	target[0].y=200;
@@ -624,14 +636,16 @@ void AsteroidSetup()
 	user.dir=90;
 	user.health=100;
 	user.visible=true;
-	user.r1=0.3; user.g1=0.3; user.b1=1;
-	user.r2=0; user.g2=0; user.b2=0.4;
-	user.r3=0; user.g3=0; user.b3=0.8;
+	user.r1=0.3; user.g1=0.5; user.b1=1;
+	user.r2=0.1; user.g2=0.1; user.b2=0.4;
+	user.r3=0.3; user.g3=0.3; user.b3=0.8;
 	user.range=240;
 	user.prime=10;
 
 	user2.visible=false;
 	remote.visible=false;
+
+	user.list = BuildShip(user);
 
 	rand(); //Randomize
 	asteroid[aC].x=0;
@@ -1979,16 +1993,14 @@ void DrawAll()
 
 	DrawShip(user);
 	DrawShip(user2);
-
 	DrawAsteroids();
-
 	DrawShip(remote);
-	
+
 	#ifdef INSTRUMENT
 		timeb=glutGet(GLUT_ELAPSED_TIME);
 		printf("*%d* : ",timeb-timea);
 	#endif
-	
+
 	DrawBullets();
 	DrawGround();
 	DrawEffects();
@@ -2005,6 +2017,55 @@ void DrawAll()
 	return;
 }
 
+//Here we compile the ship model into a display list in order to increase runtime speed
+GLuint BuildShip(struct craft craft)
+{
+	//Oh shit, this is some bad code....
+	//(checking craft.list but returning a value which we assume will be stored in craft.list)
+	if (glIsList(craft.list))
+		glDeleteLists(craft.list,1);
+
+	GLuint list = glGenLists(1);
+
+	glNewList(list, GL_COMPILE);
+		glBegin (GL_TRIANGLES);
+		glColor3f (craft.r1, craft.g1, craft.b1);   glVertex3f (15/w2, 0/h2, 0);
+		glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, -10/h2, 10/h2);
+		glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, 10/h2, 10/h2);
+
+		glColor3f (craft.r1, craft.g1, craft.b1);   glVertex3f (15/w2, 0/h2, 0);
+		glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, 10/h2, -10/h2);
+		glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, 10/h2, 10/h2);
+
+		glColor3f (craft.r1, craft.g1, craft.b1);   glVertex3f (15/w2, 0/h2, 0);
+		glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, 10/h2, -10/h2);
+		glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, -10/h2, -10/h2);
+
+		glColor3f (craft.r1, craft.g1, craft.b1);   glVertex3f (15/w2, 0/h2, 0);
+		glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, -10/h2, 10/h2);
+		glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, -10/h2, -10/h2);
+
+		glColor3f (1.0f, 0.0f, 0.0f);   glVertex3f (-6/w2, 0/h2, 0);
+		glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, -10/h2, 10/h2);
+		glColor3f (craft.r2, craft.g3, craft.b3);   glVertex3f (-10/w2, 10/h2, 10/h2);
+
+		glColor3f (1.0f, 0.0f, 0.0f);   glVertex3f (-6/w2, 0/h2, 0);
+		glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, 10/h2, -10/h2);
+		glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, 10/h2, 10/h2);
+
+		glColor3f (1.0f, 0.0f, 0.0f);   glVertex3f (-6/w2, 0/h2, 0);
+		glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, 10/h2, -10/h2);
+		glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, -10/h2, -10/h2);
+
+		glColor3f (1.0f, 0.0f, 0.0f);   glVertex3f (-6/w2, 0/h2, 0);
+		glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, -10/h2, 10/h2);
+		glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, -10/h2, -10/h2);
+		glEnd ();
+	glEndList();
+
+	return list;
+}
+
 void DrawShip(struct craft craft)
 {
 	if (!craft.visible)
@@ -2014,43 +2075,8 @@ void DrawShip(struct craft craft)
 	glTranslated(craft.x/w2,craft.y/h2, -1);
 	glRotated(craft.dir, 0, 0, 1);
 	glRotated(craft.dir, 1, 0, 0);
-	
-	glBegin (GL_TRIANGLES);
-	glColor3f (craft.r1, craft.g1, craft.b1);   glVertex3f (15/w2, 0/h2, 0);
-	glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, -10/h2, 10/h2);
-	glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, 10/h2, 10/h2);
 
-	glColor3f (craft.r1, craft.g1, craft.b1);   glVertex3f (15/w2, 0/h2, 0);
-	glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, 10/h2, -10/h2);
-	glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, 10/h2, 10/h2);
-
-	glColor3f (craft.r1, craft.g1, craft.b1);   glVertex3f (15/w2, 0/h2, 0);
-	glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, 10/h2, -10/h2);
-	glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, -10/h2, -10/h2);
-
-	glColor3f (craft.r1, craft.g1, craft.b1);   glVertex3f (15/w2, 0/h2, 0);
-	glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, -10/h2, 10/h2);
-	glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, -10/h2, -10/h2);
-	glEnd ();
-	
-	glBegin (GL_TRIANGLES);
-	glColor3f (1.0f, 0.0f, 0.0f);   glVertex3f (-6/w2, 0/h2, 0);
-	glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, -10/h2, 10/h2);
-	glColor3f (craft.r2, craft.g3, craft.b3);   glVertex3f (-10/w2, 10/h2, 10/h2);
-
-	glColor3f (1.0f, 0.0f, 0.0f);   glVertex3f (-6/w2, 0/h2, 0);
-	glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, 10/h2, -10/h2);
-	glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, 10/h2, 10/h2);
-
-	glColor3f (1.0f, 0.0f, 0.0f);   glVertex3f (-6/w2, 0/h2, 0);
-	glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, 10/h2, -10/h2);
-	glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, -10/h2, -10/h2);
-
-	glColor3f (1.0f, 0.0f, 0.0f);   glVertex3f (-6/w2, 0/h2, 0);
-	glColor3f (craft.r2, craft.g2, craft.b2);   glVertex3f (-10/w2, -10/h2, 10/h2);
-	glColor3f (craft.r3, craft.g3, craft.b3);   glVertex3f (-10/w2, -10/h2, -10/h2);
-	glEnd ();
-
+	glCallList(craft.list);
 
 	if (craft.x>width/2)
 	{
@@ -2108,7 +2134,7 @@ void DrawShip(struct craft craft)
 		glColor3f (1.0f, 0.0f, 0.24f);   glVertex3f (0/w2, 5/h2, 0);
 		glEnd();
 	}
-	
+
 	return;
 }
 
@@ -2136,53 +2162,61 @@ void DrawBullets()
 	return;
 }
 
+void BuildTarget()
+{
+	target_list = glGenLists(1);
+
+	glNewList(target_list, GL_COMPILE);
+		glBegin(GL_POLYGON);
+		glColor3f (1, 0.4, 0);   glVertex3f (0/w2, 20/h2, 0/h2);
+		glColor3f (1, 0, 0);   glVertex3f (20/w2, 0/h2, 0/h2);
+		glColor3f (1, 0, 0);   glVertex3f (10/w2, -20/h2, 0/h2);
+		glColor3f (1, 0, 0);   glVertex3f (-10/w2, -20/h2, 0/h2);
+		glColor3f (1, 0, 0);   glVertex3f (-20/w2, 0/h2, 0/h2);
+		glEnd();
+
+		glBegin(GL_POLYGON);
+		glColor3f (1, 1, 1);   glVertex3f (0/w2, 15/h2, 0/h2);
+		glColor3f (1, 0.6, 1);   glVertex3f (15/w2, 0/h2, 0/h2);
+		glColor3f (1, 1, 1);   glVertex3f (7.5/w2, -15/h2, 0/h2);
+		glColor3f (1, 1, 1);   glVertex3f (-7.5/w2, -15/h2, 0/h2);
+		glColor3f (1, 1, 1);   glVertex3f (-15/w2, 0/h2, 0/h2);
+		glEnd();
+
+		glBegin(GL_POLYGON);
+		glColor3f (1, 0, 0);   glVertex3f (0/w2, 10/h2, 0/h2);
+		glColor3f (1, 0, 0);   glVertex3f (10/w2, 0/h2, 0/h2);
+		glColor3f (1, 0.4, 0);   glVertex3f (5/w2, -10/h2, 0/h2);
+		glColor3f (1, 0, 0);   glVertex3f (-5/w2, -10/h2, 0/h2);
+		glColor3f (1, 0, 0);   glVertex3f (-10/w2, 0/h2, 0/h2);
+		glEnd();
+
+		glBegin(GL_POLYGON);
+		glColor3f (1, 1, 1);   glVertex3f (0/w2, 5/h2, 0/h2);
+		glColor3f (1, 1, 1);   glVertex3f (5/w2, 0/h2, 0/h2);
+		glColor3f (1, 1, 1);   glVertex3f (2.5/w2, -5/h2, 0/h2);
+		glColor3f (1, 0.6, 1);   glVertex3f (-2.5/w2, -5/h2, 0/h2);
+		glColor3f (1, 1, 1);   glVertex3f (-5/w2, 0/h2, 0/h2);
+		glEnd();
+	glEndList();
+}
+
 void DrawTargets()
 {
-     glDisable(GL_DEPTH_TEST);
-     int i;
-     for (i=0; i<10; i++)
-     {
-         if (!target[i].visible)
-            continue;
-            
-         glLoadIdentity();
-         
-         glTranslated(target[i].x/w2,target[i].y/h2, -1);
-         glBegin(GL_POLYGON);
-         glColor3f (1, 0, 0);   glVertex3f (0/w2, 20/h2, 0/h2);
-         glColor3f (1, 0, 0);   glVertex3f (20/w2, 0/h2, 0/h2);
-         glColor3f (1, 0, 0);   glVertex3f (10/w2, -20/h2, 0/h2);
-         glColor3f (1, 0, 0);   glVertex3f (-10/w2, -20/h2, 0/h2);
-         glColor3f (1, 0, 0);   glVertex3f (-20/w2, 0/h2, 0/h2);
-         glEnd();
-         
-         glBegin(GL_POLYGON);
-         glColor3f (1, 1, 1);   glVertex3f (0/w2, 15/h2, 0/h2);
-         glColor3f (1, 1, 1);   glVertex3f (15/w2, 0/h2, 0/h2);
-         glColor3f (1, 1, 1);   glVertex3f (7.5/w2, -15/h2, 0/h2);
-         glColor3f (1, 1, 1);   glVertex3f (-7.5/w2, -15/h2, 0/h2);
-         glColor3f (1, 1, 1);   glVertex3f (-15/w2, 0/h2, 0/h2);
-         glEnd();
-         
-         glBegin(GL_POLYGON);
-         glColor3f (1, 0, 0);   glVertex3f (0/w2, 10/h2, 0/h2);
-         glColor3f (1, 0, 0);   glVertex3f (10/w2, 0/h2, 0/h2);
-         glColor3f (1, 0, 0);   glVertex3f (5/w2, -10/h2, 0/h2);
-         glColor3f (1, 0, 0);   glVertex3f (-5/w2, -10/h2, 0/h2);
-         glColor3f (1, 0, 0);   glVertex3f (-10/w2, 0/h2, 0/h2);
-         glEnd();
-         
-         glBegin(GL_POLYGON);
-         glColor3f (1, 1, 1);   glVertex3f (0/w2, 5/h2, 0/h2);
-         glColor3f (1, 1, 1);   glVertex3f (5/w2, 0/h2, 0/h2);
-         glColor3f (1, 1, 1);   glVertex3f (2.5/w2, -5/h2, 0/h2);
-         glColor3f (1, 1, 1);   glVertex3f (-2.5/w2, -5/h2, 0/h2);
-         glColor3f (1, 1, 1);   glVertex3f (-5/w2, 0/h2, 0/h2);
-         glEnd();
-     }
-     glEnable(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);
+	int i;
+	for (i=0; i<10; i++)
+	{
+		if (!target[i].visible)
+			continue;
 
-     return;
+		glLoadIdentity();
+		glTranslated(target[i].x/w2,target[i].y/h2, -1);
+		glCallList(target_list);
+	}
+	glEnable(GL_DEPTH_TEST);
+
+	return;
 }
 
 
@@ -2446,284 +2480,285 @@ void HelpSetup()
 
 void HelpMain()
 {
-     glLoadIdentity();
-     glColor3f(1, 0.5f, 0);
-     glTranslated(-0.5,-0.4,-6);
-     glScaled(0.00075,0.00075,1);
+	glLoadIdentity();
+	glColor3f(1, 0.5f, 0);
+	glTranslated(-0.5,-0.4,-6);
+	glScaled(0.00075,0.00075,1);
 
 	//Prevent Endgame Screen
 	status.end=0;
 
-     glLoadIdentity();
-     glColor3f(0.85f, 0.5f, 0);
-     glTranslated(-1.5,1.5,-3);
-     glScaled(0.0005,0.0005,1);
-     if (menu.help>0 && menu.help<=1)
-	ShowText("Welcome to Untitled One");
-     if (menu.help>2 && menu.help<=3)
-	ShowText("Use the arrow keys to maneuver your ship");
-     if (menu.help>3 && menu.help<=35)
-	ShowText("Press 'up' for thrust");
-     if (menu.help>35 && menu.help<=45)
-  	ShowText("Press 'right' and 'left' to rotate");
-     if (menu.help>45 && menu.help<=60)
-	ShowText("Press 'space' to fire");
-     if (menu.help>60 && menu.help<=70)
-	ShowText("Missiles take time to become armed");
-     if (menu.help>70 && menu.help<=100)
-	ShowText("Only an armed missile leaves a smoke trail");
-     if (menu.help>100 && menu.help<=125)
-	ShowText("Armed missiles will do damage");
-     if (menu.help>125 && menu.help<=150)
-	ShowText("Everything is affected by gravity");
-     if (menu.help>150 && menu.help<=170)
-	ShowText("Be careful not to crash");
-     if (menu.help>170 && menu.help<=175)
-	ShowText("You don't get a second chance");
-     if (menu.help>175 && menu.help<=185)
-	ShowText("In Target mode, you can practice shooting");
-     if (menu.help>185 && menu.help<=195)
-	ShowText("In Asteroids mode, you destroy asteroids");
-     if (menu.help>195 && menu.help<=235)
-	ShowText("Asteroids break into smaller pieces");
-     if (menu.help>235 && menu.help<=285)
-	ShowText("Don't get hit by the asteroids");
-     if (menu.help>285 && menu.help<=300)
-	ShowText("In Classic mode, you battle another player");
-     if (menu.help>300 && menu.help<=335)
-	ShowText("Player two uses the 'w', 'a', 'd', and 'e' keys");
-     if (menu.help>335 && menu.help<=455)
-	ShowText("Four hits will destroy your opponent");
-     if (menu.help>455 && menu.help<=490)
-	ShowText("It is possible to land safely on the ground");
-     if (menu.help>490 && menu.help<=535)
-	ShowText("Careful, your own missiles can hit you");
-     if (menu.help>540 && menu.help<=550)
-	ShowText("That's all");
-     if (menu.help>550 && menu.help<=560)
-	ShowText("Good luck!");
-     
-     if (menu.help==0)
-     {
-        user.x=-200;
-        user.y=-205;
-        user.xspeed=0;
-        user.yspeed=0;
-        user.dir=90;
-        user.health=100;
-        user.visible=true;
-        user.r1=0.3; user.g1=0.3; user.b1=0.3;
-        user.r2=0.4; user.g2=0.4; user.b2=0.4;
-        user.r3=0.8; user.g3=0.8; user.b3=0.8;
-	user.range=240;
-	user.prime=30;
-	
-        user2.visible=false;
-	user2.range=240;
-	user2.prime=30;
-        
-        int i;
-        
-        for (i=0; i<50; i++)
-         asteroid[i].visible=false;
-        for (i=0; i<10; i++)
-         target[i].visible=false;
-     }
-     if (menu.help>3 && menu.help<30)
-     {
-        user.xspeed+=cos(user.dir*(PI/180))*thrust;
-        user.yspeed+=sin(user.dir*(PI/180))*thrust;      
-        Thrust(user);
-     }
-     if (menu.help>35 && menu.help<45)
-     {
-        user.dir+=-5;
-        if (user.dir<0)
-           user.dir+=360;
-     }
-     if (menu.help>45 && menu.help<60)
-     {
-        user.xspeed+=cos(user.dir*(PI/180))*thrust;
-        user.yspeed+=sin(user.dir*(PI/180))*thrust;      
-        Thrust(user);
-        
-        if (menu.help==50)
-           Fire(user);
-     }
-     if (menu.help>60 && menu.help<=61)
-     {
-        target[0].x=-100;
-        target[0].y=25;
-        target[0].visible=true;
-     }
-     if (menu.help>100 && menu.help<=101)
-     {
-        target[0].x=90;
-        target[0].y=110;
-        target[0].visible=true;
-     }
-     if (menu.help>175 && menu.help<=176)
-     {
-        target[0].x=0;
-        target[0].y=0;
-        target[0].visible=true;
-        target[1].x=75;
-        target[1].y=-25;
-        target[1].visible=true;
-        target[2].x=-75;
-        target[2].y=-25;
-        target[2].visible=true;
-     }
-     if (menu.help>185 && menu.help<=186)
-     {
-        target[0].visible=false;
-        target[1].visible=false;
-        target[2].visible=false;
-        asteroid[14].x=0;
-        asteroid[14].y=0;
-        asteroid[14].xspeed=0;
-        asteroid[14].yspeed=5;
-        asteroid[14].visible=true;
-        asteroid[14].size=2;
-     }
-     if (menu.help>195 && menu.help<=196)
-     {
-        bt1[0].x=0;
-        bt1[0].y=-50;
-        bt1[0].yspeed=10;
-        bt1[0].xspeed=0;
-        bt1[0].visible=true;
-        bt1[0].active=5;
-     }
-     if (menu.help>235 && menu.help<=236)
-     {
-        user.x=-225;
-        user.y=-100;
-        user.xspeed=0;
-        user.yspeed=0;
-        user.dir=85;
-        user.health=100;
-        user.visible=true;
-        user.r1=0.3; user.g1=0.3; user.b1=0.3;
-        user.r2=0.4; user.g2=0.4; user.b2=0.4;
-        user.r3=0.8; user.g3=0.8; user.b3=0.8;
-     }
-     if (menu.help>236 && menu.help<285)
-     {
-        user.xspeed+=cos(user.dir*(PI/180))*thrust;
-        user.yspeed+=sin(user.dir*(PI/180))*thrust;      
-        Thrust(user);
-     }
-     if (menu.help==286)
-     {
-        user.x=-100;
-        user.y=-205;
-        user.xspeed=0;
-        user.yspeed=0;
-        user.dir=80;
-        user.health=50;
-        user.visible=true;
-        user.r1=0.6; user.g1=0.6; user.b1=0.6;
-        user.r2=0.8; user.g2=0.8; user.b2=0.8;
-        user.r3=1; user.g3=1; user.b3=1;
-        
-        user2.x=200;
-        user2.y=-205;
-        user2.xspeed=0;
-        user2.yspeed=0;
-        user2.dir=100;
-        user2.health=100;
-        user2.visible=true;
-        user2.r1=0.3; user2.g1=0.3; user2.b1=0.3;
-        user2.r2=0.4; user2.g2=0.4; user2.b2=0.4;
-        user2.r3=0.8; user2.g3=0.8; user2.b3=0.8;
-	user2.range=240;
-	user2.prime=30;
-        
-        int i;
-        for (i=0; i<50; i++)
-         asteroid[i].visible=false;
-     }
-     if (menu.help>310 && menu.help<335)
-     {
-        user2.xspeed+=cos(user2.dir*(PI/180))*thrust;
-        user2.yspeed+=sin(user2.dir*(PI/180))*thrust;      
-        Thrust(user2);
-        
-        if (menu.help==315)
-           user2.dir=111;
-        
-        if (menu.help==320)
-           Fire(user2);
-           
-        if (menu.help>=330)
-           user2.dir+=-5;        
-     }
-     if (menu.help>405 && menu.help<435)
-     {
-        user2.xspeed+=cos(user2.dir*(PI/180))*thrust;
-        user2.yspeed+=sin(user2.dir*(PI/180))*thrust;      
-        Thrust(user2);
-     }
-     if (menu.help>470 && menu.help<475)
-     {
-        user2.dir=85;
-        user2.xspeed+=cos(user2.dir*(PI/180))*thrust;
-        user2.yspeed+=sin(user2.dir*(PI/180))*thrust;      
-        Thrust(user2);
-        
-        if (menu.help==471)
-           Fire(user);
-     }
-     if (menu.help>470 && menu.help<490)
-     {
-        user.xspeed+=cos(user.dir*(PI/180))*thrust;
-        user.yspeed+=sin(user.dir*(PI/180))*thrust;      
-        Thrust(user);
-     }
-     if (menu.help>515 && menu.help<535)
-     {
-        user.xspeed+=cos(user.dir*(PI/180))*thrust;
-        user.yspeed+=sin(user.dir*(PI/180))*thrust;      
-        Thrust(user);
-     }
-     if (menu.help==565)
+	glLoadIdentity();
+	glColor3f(0.85f, 0.5f, 0);
+	glTranslated(-1.5,1.5,-3);
+	glScaled(0.0005,0.0005,1);
+	if (menu.help>0 && menu.help<=1)
+		ShowText("Welcome to Untitled One");
+	if (menu.help>2 && menu.help<=3)
+		ShowText("Use the arrow keys to maneuver your ship");
+	if (menu.help>3 && menu.help<=35)
+		ShowText("Press 'up' for thrust");
+	if (menu.help>35 && menu.help<=45)
+		ShowText("Press 'right' and 'left' to rotate");
+	if (menu.help>45 && menu.help<=60)
+		ShowText("Press 'space' to fire");
+	if (menu.help>60 && menu.help<=70)
+		ShowText("Missiles take time to become armed");
+	if (menu.help>70 && menu.help<=100)
+		ShowText("Only an armed missile leaves a smoke trail");
+	if (menu.help>100 && menu.help<=125)
+		ShowText("Armed missiles will do damage");
+	if (menu.help>125 && menu.help<=150)
+		ShowText("Everything is affected by gravity");
+	if (menu.help>150 && menu.help<=170)
+		ShowText("Be careful not to crash");
+	if (menu.help>170 && menu.help<=175)
+		ShowText("You don't get a second chance");
+	if (menu.help>175 && menu.help<=185)
+		ShowText("In Target mode, you can practice shooting");
+	if (menu.help>185 && menu.help<=195)
+		ShowText("In Asteroids mode, you destroy asteroids");
+	if (menu.help>195 && menu.help<=235)
+		ShowText("Asteroids break into smaller pieces");
+	if (menu.help>235 && menu.help<=285)
+		ShowText("Don't get hit by the asteroids");
+	if (menu.help>285 && menu.help<=300)
+		ShowText("In Classic mode, you battle another player");
+	if (menu.help>300 && menu.help<=335)
+		ShowText("Player two uses the 'w', 'a', 'd', and 'e' keys");
+	if (menu.help>335 && menu.help<=455)
+		ShowText("Four hits will destroy your opponent");
+	if (menu.help>455 && menu.help<=490)
+		ShowText("It is possible to land safely on the ground");
+	if (menu.help>490 && menu.help<=535)
+		ShowText("Careful, your own missiles can hit you");
+	if (menu.help>540 && menu.help<=550)
+		ShowText("That's all");
+	if (menu.help>550 && menu.help<=560)
+		ShowText("Good luck!");
+
+	if (menu.help==0)
+	{
+		user.x=-200;
+		user.y=-205;
+		user.xspeed=0;
+		user.yspeed=0;
+		user.dir=90;
+		user.health=100;
+		user.visible=true;
+		user.r1=0.2; user.g1=0.2; user.b1=0.2;
+		user.r2=0.3; user.g2=0.3; user.b2=0.3;
+		user.r3=0.9; user.g3=0.9; user.b3=0.9;
+		user.range=240;
+		user.prime=30;
+
+		user2.visible=false;
+		user2.r1=0.3; user2.g1=0.3; user2.b1=0.3;
+		user2.r2=0.4; user2.g2=0.4; user2.b2=0.4;
+		user2.r3=0.8; user2.g3=0.8; user2.b3=0.8;
+		user2.range=240;
+		user2.prime=30;
+
+		user.list = BuildShip(user);
+		user2.list = BuildShip(user2);
+
+		int i;
+
+		for (i=0; i<50; i++)
+			asteroid[i].visible=false;
+		for (i=0; i<10; i++)
+			target[i].visible=false;
+	}
+	if (menu.help>3 && menu.help<30)
+	{
+		user.xspeed+=cos(user.dir*(PI/180))*thrust;
+		user.yspeed+=sin(user.dir*(PI/180))*thrust;      
+		Thrust(user);
+	}
+	if (menu.help>35 && menu.help<45)
+	{
+		user.dir+=-5;
+		if (user.dir<0)
+			user.dir+=360;
+	}
+	if (menu.help>45 && menu.help<60)
+	{
+		user.xspeed+=cos(user.dir*(PI/180))*thrust;
+		user.yspeed+=sin(user.dir*(PI/180))*thrust;      
+		Thrust(user);
+
+		if (menu.help==50)
+			Fire(user);
+	}
+	if (menu.help>60 && menu.help<=61)
+	{
+		target[0].x=-100;
+		target[0].y=25;
+		target[0].visible=true;
+
+		if (!glIsList(target_list))
+			BuildTarget();
+	}
+	if (menu.help>100 && menu.help<=101)
+	{
+		target[0].x=90;
+		target[0].y=110;
+		target[0].visible=true;
+	}
+	if (menu.help>175 && menu.help<=176)
+	{
+		target[0].x=0;
+		target[0].y=0;
+		target[0].visible=true;
+		target[1].x=75;
+		target[1].y=-25;
+		target[1].visible=true;
+		target[2].x=-75;
+		target[2].y=-25;
+		target[2].visible=true;
+	}
+	if (menu.help>185 && menu.help<=186)
+	{
+		target[0].visible=false;
+		target[1].visible=false;
+		target[2].visible=false;
+		asteroid[14].x=0;
+		asteroid[14].y=0;
+		asteroid[14].xspeed=0;
+		asteroid[14].yspeed=5;
+		asteroid[14].visible=true;
+		asteroid[14].size=2;
+
+	}
+	if (menu.help>195 && menu.help<=196)
+	{
+		bt1[0].x=0;
+		bt1[0].y=-50;
+		bt1[0].yspeed=10;
+		bt1[0].xspeed=0;
+		bt1[0].visible=true;
+		bt1[0].active=5;
+	}
+	if (menu.help>235 && menu.help<=236)
+	{
+		user.x=-225;
+		user.y=-100;
+		user.xspeed=0;
+		user.yspeed=0;
+		user.dir=85;
+		user.health=100;
+		user.visible=true;
+	}
+	if (menu.help>236 && menu.help<285)
+	{
+		user.xspeed+=cos(user.dir*(PI/180))*thrust;
+		user.yspeed+=sin(user.dir*(PI/180))*thrust;      
+		Thrust(user);
+	}
+	if (menu.help==286)
+	{
+		user.x=-100;
+		user.y=-205;
+		user.xspeed=0;
+		user.yspeed=0;
+		user.dir=80;
+		user.health=50;
+		user.visible=true;
+
+		user2.x=200;
+		user2.y=-205;
+		user2.xspeed=0;
+		user2.yspeed=0;
+		user2.dir=100;
+		user2.health=100;
+		user2.visible=true;
+		user2.range=240;
+		user2.prime=30;
+
+		int i;
+		for (i=0; i<50; i++)
+			asteroid[i].visible=false;
+	}
+	if (menu.help>310 && menu.help<335)
+	{
+		user2.xspeed+=cos(user2.dir*(PI/180))*thrust;
+		user2.yspeed+=sin(user2.dir*(PI/180))*thrust;      
+		Thrust(user2);
+
+		if (menu.help==315)
+			user2.dir=111;
+
+		if (menu.help==320)
+			Fire(user2);
+
+		if (menu.help>=330)
+			user2.dir+=-5;        
+	}
+	if (menu.help>405 && menu.help<435)
+	{
+		user2.xspeed+=cos(user2.dir*(PI/180))*thrust;
+		user2.yspeed+=sin(user2.dir*(PI/180))*thrust;      
+		Thrust(user2);
+	}
+	if (menu.help>470 && menu.help<475)
+	{
+		user2.dir=85;
+		user2.xspeed+=cos(user2.dir*(PI/180))*thrust;
+		user2.yspeed+=sin(user2.dir*(PI/180))*thrust;      
+		Thrust(user2);
+
+		if (menu.help==471)
+			Fire(user);
+	}
+	if (menu.help>470 && menu.help<490)
+	{
+		user.xspeed+=cos(user.dir*(PI/180))*thrust;
+		user.yspeed+=sin(user.dir*(PI/180))*thrust;      
+		Thrust(user);
+	}
+	if (menu.help>515 && menu.help<535)
+	{
+		user.xspeed+=cos(user.dir*(PI/180))*thrust;
+		user.yspeed+=sin(user.dir*(PI/180))*thrust;      
+		Thrust(user);
+	}
+	if (menu.help==565)
 		CurrentLoop=MenuInit;
 
 
-     if (menu.help!=1
-      && menu.help!=3
-      && menu.help!=35
-      && menu.help!=45
-      && menu.help!=60
-      && menu.help!=70
-      && menu.help!=100
-      && menu.help!=125
-      && menu.help!=150
-      && menu.help!=170
-      && menu.help!=175
-      && menu.help!=185
-      && menu.help!=195
-      && menu.help!=235
-      && menu.help!=285
-      && menu.help!=300
-      && menu.help!=335
-      && menu.help!=455
-      && menu.help!=490
-      && menu.help!=535
-      && menu.help!=550
-      && menu.help!=560)
-     {
-        menu.help++;
-        Move();
-     }
-     else
-     {
-        if (KeyState(VK_RETURN))
-           menu.help++;
-     }
-     
-     DrawAll();
-     
-     return;
+	if (menu.help!=1
+		&& menu.help!=3
+		&& menu.help!=35
+		&& menu.help!=45
+		&& menu.help!=60
+		&& menu.help!=70
+		&& menu.help!=100
+		&& menu.help!=125
+		&& menu.help!=150
+		&& menu.help!=170
+		&& menu.help!=175
+		&& menu.help!=185
+		&& menu.help!=195
+		&& menu.help!=235
+		&& menu.help!=285
+		&& menu.help!=300
+		&& menu.help!=335
+		&& menu.help!=455
+		&& menu.help!=490
+		&& menu.help!=535
+		&& menu.help!=550
+		&& menu.help!=560)
+	{
+		menu.help++;
+		Move();
+	}
+	else
+	{
+		if (KeyState(VK_RETURN))
+			menu.help++;
+	}
+
+	DrawAll();
+
+	return;
 }

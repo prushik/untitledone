@@ -6,7 +6,7 @@ PREFIX="/usr/local"
 AUDIO="-DAUDIO -lopenal -lalut"
 NETWORK=""
 FULLSCREEN=""
-TIMING=""
+TIMING="-DSLOPPYTIME"
 
 for all in $@
 do
@@ -39,6 +39,9 @@ do
 	if [ $opt = "--enable-sloppy-timings" ]; then
 		TIMING="-DSLOPPYTIME"
 	fi
+	if [ $opt = "--disable-sloppy-timings" ]; then
+		TIMING=""
+	fi
 	if [ $opt = "--help" ]; then
 		echo "Usage: configure [options]"
 		echo "Options: [defaults in brackets after descriptions]"
@@ -48,9 +51,10 @@ do
 		echo "                          [/usr/local]"
 		echo "Features and packages:"
 		echo "--enable options recognized:"
-		echo "--enable-fullscreen	Compile for fullscreen mode (not finished)"
-		echo "--disable-network		Compile without network mode (for non-posix compliant machines)"
-		echo "--disable-audio		Compile without openAL sounds"
+		echo "--enable-fullscreen		Compile for fullscreen mode (experimental)"
+		echo "--disable-network			Compile without network mode (for non-posix compliant machines)"
+		echo "--disable-audio			Compile without openAL sounds"
+		echo "--disable-sloppy-timings	Compile with more accurate timing system (experimental)"
 
 		exit
 	fi
