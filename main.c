@@ -177,27 +177,27 @@ inline int KeyState(int);
 void PlaySounds();
 
 //Game Structures... Sorry that they are all global.
-struct menu menu;				//Menu structure
-struct craft user;				//Player 1's ship
+struct menu menu;					//Menu structure
+struct craft user;					//Player 1's ship
 struct craft user2;				//Player 2's ship
-struct craft remote;			//Network player's ship
+struct craft remote;				//Network player's ship
 struct asteroids asteroid[50];	//Asteroids
-struct targets target[10];		//Targets
+struct targets target[10];			//Targets
 struct bulletType1 bt1[25];		//Bullets
 struct effect effect[512];		//Particle effects
-struct stats status;			//Game statistics
+struct stats status;				//Game statistics
 
 void (*CurrentLoop)() = MenuInit;
 
 //Variables... Sorry that they are all global.
 static double fps = 30;			//Frames per second
-static short bt1C = 0;			//Count of active bullets
-static short effectC = 0;		//Count of particles
+static short bt1C = 0;				//Count of active bullets
+static short effectC = 0;			//Count of particles
 static short aC = 0;
 static short aN = 0;
 static double gravity = -0.095;	//Gravity strength
-static double thrust = 0.25;	//Ship thrust strength
-static GLuint target_list;
+static double thrust = 0.25;		//Ship thrust strength
+static GLuint target_list;			//Display list for targets
 
 static volatile int key[512];
 
@@ -964,14 +964,22 @@ void Move()
 				asteroid[i].yspeed=-asteroid[i].yspeed-1;
 			}
 
-			if (asteroid[i].x<-width/2)
+			#ifndef FULLSCREEN
+				if (asteroid[i].x<-width/2)
+			#else
+				if (asteroid[i].x<(-width/2)*1.778)
+			#endif
 			{
 				asteroid[i].x=asteroid[i].y;
 				asteroid[i].y=height/2;
 				asteroid[i].yspeed=0;
 			}
 
-			if (asteroid[i].x>width/2)
+			#ifndef FULLSCREEN
+				if (asteroid[i].x>width/2)
+			#else
+				if (asteroid[i].x>(width/2)*1.778)
+			#endif
 			{
 				asteroid[i].x=-asteroid[i].y;
 				asteroid[i].y=height/2;
@@ -2078,10 +2086,18 @@ void DrawShip(struct craft craft)
 
 	glCallList(craft.list);
 
-	if (craft.x>width/2)
+	#ifndef FULLSCREEN
+		if (craft.x>width/2)
+	#else
+		if (craft.x>(width*1.778)/2)
+	#endif
 	{
 		glLoadIdentity();
-		glTranslated((width/2-100)/w2,craft.y/h2, -1);
+		#ifndef FULLSCREEN
+			glTranslated((width/2-100)/w2,craft.y/h2, -1);
+		#else
+			glTranslated(((width/2-100)/w2)*1.778,craft.y/h2, -1);
+		#endif
 		glRotated(craft.dir, 0, 0, 1);
 		glBegin (GL_TRIANGLES);
 		glColor3f (craft.r1/3, craft.g1/3, craft.b1/3);   glVertex3f (15/w2, 0/h2, 0);
@@ -2089,17 +2105,29 @@ void DrawShip(struct craft craft)
 		glColor3f (craft.r3/3, craft.g3/3, craft.b3/3);   glVertex3f (-10/w2, 10/h2, 0);
 		glEnd();
 		glLoadIdentity();
-		glTranslated((width/2-80)/w2,craft.y/h2, -1);
+		#ifndef FULLSCREEN
+			glTranslated((width/2-80)/w2,craft.y/h2, -1);
+		#else
+			glTranslated(((width/2-80)/w2)*1.778,craft.y/h2, -1);
+		#endif
 		glBegin (GL_TRIANGLES);
 		glColor3f (1.1f, 0.1f, 0.3f);   glVertex3f (5/w2, 0/h2, 0);
 		glColor3f (1.0f, 0.0f, 0.12f);   glVertex3f (0/w2, -5/h2, 0);
 		glColor3f (1.0f, 0.0f, 0.24f);   glVertex3f (0/w2, 5/h2, 0);
 		glEnd();
 	}
-	if (craft.x<-width/2)
+	#ifndef FULLSCREEN
+		if (craft.x<-(width/2))
+	#else
+		if (craft.x<-(width*1.778)/2)
+	#endif
 	{
 		glLoadIdentity();
-		glTranslated(-(width/2-90)/w2,craft.y/h2, -1);
+		#ifndef FULLSCREEN
+			glTranslated((-(width/2-90)/w2),craft.y/h2, -1);
+		#else
+			glTranslated((-(width/2-90)/w2)*1.778,craft.y/h2, -1);
+		#endif
 		glRotated(craft.dir, 0, 0, 1);
 		glBegin (GL_TRIANGLES);
 		glColor3f (craft.r1/3, craft.g1/3, craft.b1/3);   glVertex3f (15/w2, 0/h2, 0);
@@ -2107,7 +2135,11 @@ void DrawShip(struct craft craft)
 		glColor3f (craft.r3/3, craft.g3/3, craft.b3/3);   glVertex3f (-10/w2, 10/h2, 0);
 		glEnd();
 		glLoadIdentity();
-		glTranslated(-(width/2-70)/w2,craft.y/h2, -1);
+		#ifndef FULLSCREEN
+			glTranslated((-(width/2-70)/w2),craft.y/h2, -1);
+		#else
+			glTranslated((-(width/2-70)/w2)*1.778,craft.y/h2, -1);
+		#endif
 		glRotated(180, 0, 0, 1);
 		glBegin (GL_TRIANGLES);
 		glColor3f (1.1f, 0.1f, 0.3f);   glVertex3f (5/w2, 0/h2, 0);
